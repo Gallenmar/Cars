@@ -50,7 +50,7 @@ def alien_move():
     key=pygame.key.get_pressed() 
     if key[pygame.K_a]: ali.left()
     if key[pygame.K_d]: ali.right()
-    if ali._y > HEIGHT :  RUNNING = False # death
+    if ali._y > HEIGHT :  RUNNING = False #---------------------------------------------------------------verry important note no incapsulation here
     # if it colides with border it will teleport to other border
     if ali.x < 0:
         ali.show(BGCOLOR)
