@@ -1,7 +1,5 @@
 # Cars
-Small project for practice.
-
-I love potatoes
+Small project for programming practice.
 
 
-This project is made with the help of pygame.
+This project is made with the help of pygame library.
