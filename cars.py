@@ -12,7 +12,8 @@ RUNNING = True
 HEIGHSCORE = 0
 FRAMERATE = 30
 WIDTH = 960; HEIGHT = 540
-BOUNDRY = 106
+BOUNDRY = 106 #ehere cant the car go
+YBOUNDRY = 100 #when does the sreen speed up
 BGCOLOR = pygame.Color('blue')
 FGCOLOR = pygame.Color('white')
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -28,8 +29,7 @@ clock = pygame.time.Clock()
 class Car:
 	_carWidth = 100
 	_carHeight = 100
-	_carspeed = 2
-
+	_carspeed = 0
 	car_surface = pygame.image.load('assets/defaultCar.png').convert()
 	car_surface = pygame.transform.scale(car_surface, (80,80))
 	car_rect = car_surface.get_rect(center = (0,0))
@@ -39,19 +39,31 @@ class Car:
 		self.car_surface = pygame.transform.scale(
 			self.car_surface, (self._carWidth,self._carHeight))
 		self.car_rect = self.car_surface.get_rect(center = (x,y))
-	def left(self, speed = _carspeed):
-		if self.car_rect.left - speed < BOUNDRY:
+		
+	
+	@property
+	def carspeed(self):
+		return self._carspeed
+	@carspeed.setter
+	def carspeed(self, value):
+		self._carspeed = value
+	@carspeed.deleter
+	def carspeed(self):
+		del self._carspeed
+	
+	def left(self, speed):
+		if self.car_rect.left - speed <= BOUNDRY:
 			self.car_rect.left = BOUNDRY
 		elif not self.car_rect.left - speed == BOUNDRY:
 			self.car_rect.centerx -= speed
-	def right(self, speed = _carspeed):
-		if self.car_rect.right + speed > WIDTH - BOUNDRY:
+	def right(self, speed):
+		if self.car_rect.right + speed >= WIDTH - BOUNDRY:
 			self.car_rect.right = WIDTH - BOUNDRY
 		elif not self.car_rect.right + speed == WIDTH - BOUNDRY:
 			self.car_rect.centerx += speed
-	def up(self, speed = _carspeed):
+	def up(self, speed):
 		self.car_rect.centery -= speed
-	def down(self, speed = _carspeed):
+	def down(self, speed):
 		self.car_rect.centery += speed
 
 #-funcs-
@@ -105,6 +117,11 @@ def myMenu():   # this is shit
 	elif choose == -1:
 		return -1
 
+def draw_floor():
+	screen.blit(bg_surface,(0,floor_y_pos))
+	screen.blit(bg_surface,(0,floor_y_pos - HEIGHT))
+
+
 #-Menu-
 menu_run = 1
 while menu_run == 1:
@@ -116,11 +133,12 @@ while menu_run == 1:
 		
 
 
-
 #cars
-ucar = Car(500,40,'assets/myCar.png')
-u2car = Car(500,300)
+ucar = Car(500,400,'assets/myCar.png')
+u2car = Car(500,30)
 tmp_speed = 4
+floor_y_pos = -1
+floor_speed = 3
 #-game loop-
 while RUNNING:
 	for event in pygame.event.get():
@@ -129,9 +147,22 @@ while RUNNING:
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_ESCAPE:
 				RUNNING = False
+	floor_y_pos += floor_speed
+	draw_floor()
+	if floor_y_pos >= HEIGHT:
+		floor_y_pos = 0
+	if floor_y_pos < 0:
+		floor_y_pos = HEIGHT
+	if ucar.car_rect.top < YBOUNDRY:
+		floor_speed = ucar.carspeed + ucar.carspeed//4
+		#if floor_speed < 0:
+		#	floor_speed = 2* ucar.carspeed
+		ucar.down(1)
+	elif ucar.car_rect.bottom > HEIGHT - YBOUNDRY:
+		floor_speed = ucar.carspeed #- ucar.carspeed//2
+		ucar.up(1)
 
-		
-	screen.blit(bg_surface,(0,0))
+
 	#screen.blit(road_surface,(0, HEIGHT//2))
 	screen.blit(ucar.car_surface, ucar.car_rect)
 	screen.blit(u2car.car_surface, u2car.car_rect)
@@ -140,16 +171,18 @@ while RUNNING:
 	key=pygame.key.get_pressed() 
 	if key[pygame.K_a]: ucar.left(tmp_speed)
 	if key[pygame.K_d]: ucar.right(tmp_speed)
-	if key[pygame.K_w]: ucar.up(tmp_speed)
-	if key[pygame.K_s]: ucar.down(tmp_speed)
+	if key[pygame.K_w]: ucar.carspeed += 0.3
+	if key[pygame.K_s]: ucar.carspeed -= 0.3
 
 	if key[pygame.K_j]: u2car.left(tmp_speed)
 	if key[pygame.K_l]: u2car.right(tmp_speed)
-	if key[pygame.K_i]: u2car.up(tmp_speed)
-	if key[pygame.K_k]: u2car.down(tmp_speed)
-
-	ucar.down()
-	u2car.down()
+	if key[pygame.K_i]: u2car.carspeed += 0.3
+	if key[pygame.K_k]: u2car.carspeed -= 0.3
+	ucar.up(ucar.carspeed)
+	u2car.up(u2car.carspeed)
+	ucar.down(floor_speed)
+	u2car.down(floor_speed)
+	#
 
 	clock.tick(FRAMERATE)
 	pygame.display.flip() 
